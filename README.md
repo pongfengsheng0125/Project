@@ -222,7 +222,8 @@ ODE：y'' + w^2 * y = 0
 
 ## 5. 參考資料來源
 
-https://github.com/cfgnunes/numerical-methods-python.git 中的 ode.py
+https://github.com/cfgnunes/numerical-methods-python.git ode.py
+
 ChatGPT
 
 ---
