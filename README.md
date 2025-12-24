@@ -126,23 +126,34 @@ RK4 方法透過在一個步長內，多次估計斜率來提高準確度。
 基本步驟：
 
 1.定義微分方程
+
 ODE 必須寫成 dy/dx = f(x, y) 的形式
-def f(x, y):
+
+    def f(x, y):
     return -2*y + np.sin(x)
 
 2.呼叫數值解函數
-Euler 方法：vx, vy, y_func = euler(f, a=0, b=10, n=100, ya=1.0)
-RK4   方法：vx, vy, y_func = rk4(f, a=0, b=10, n=100, ya=1.0)
+
+Euler 方法：
+
+    vx, vy, y_func = euler(f, a=0, b=10, n=100, ya=1.0)
+
+RK4 方法：
+
+    vx, vy, y_func = rk4(f, a=0, b=10, n=100, ya=1.0)
 
 3.使用解函數 y(x)
+
 單個 x 值：
-y_value = y_func(3.5)
-print("y(3.5) =", y_value)
+
+    y_value = y_func(3.5)
+    print("y(3.5) =", y_value)
 
 多個 x 值：
-x_vals = [1.0, 2.0, 3.0]
-y_vals = y_func(x_vals)
-print("y([1,2,3]) =", y_vals)
+
+    x_vals = [1.0, 2.0, 3.0]
+    y_vals = y_func(x_vals)
+    print("y([1,2,3]) =", y_vals)
 
 4.範例
 範例 1：拋物線運動（重力加速度 g = 9.8 m/s²）
@@ -151,41 +162,41 @@ print("y([1,2,3]) =", y_vals)
 改寫成：v' = -g, y' = v
 初值：y(0)=0, v(0)=20 m/s
 
-g = 9.8
-def f_parabola(t, Y):
-    y, v = Y
-    return np.array([v, -g])
+    g = 9.8
+    def f_parabola(t, Y):
+        y, v = Y
+        return np.array([v, -g])
 
-vx, vy, Y_func = rk4(f_parabola, 0, 5, 100, np.array([0.0, 20.0]))
-print("位置 y(2s) =", Y_func(2)[0])
-print("速度 v(2s) =", Y_func(2)[1])
+    vx, vy, Y_func = rk4(f_parabola, 0, 5, 100, np.array([0.0, 20.0]))
+    print("位置 y(2s) =", Y_func(2)[0])
+    print("速度 v(2s) =", Y_func(2)[1])
 
 範例 2：指數衰減
 
 ODE：dy/dt = -k * y
 初值：y(0) = y0, k > 0
 
-def f_decay(t, y):
-    return -0.5*y
+    def f_decay(t, y):
+        return -0.5*y
 
-vx, vy, y_func = rk4(f_decay, 0, 10, 100, 10)
+    vx, vy, y_func = rk4(f_decay, 0, 10, 100, 10)
 
-print("y(5) =", y_func(5))
-print("y([1,2,3]) =", y_func([1,2,3]))
+    print("y(5) =", y_func(5))
+    print("y([1,2,3]) =", y_func([1,2,3]))
 
 範例 3：簡單諧振動
 ODE：y'' + w^2 * y = 0
 轉為系統：y1 = y, y2 = y'
 
-omega = 2.0  # rad/s
-def f_shm(t, Y):
-    y, v = Y
-    return np.array([v, -omega**2 * y])
+    omega = 2.0  # rad/s
+    def f_shm(t, Y):
+        y, v = Y
+        return np.array([v, -omega**2 * y])
 
-Y0 = np.array([1.0, 0.0])
-vx, vy, Y_func = rk4(f_shm, 0, 10, 1000, Y0)
-print("y(1s) =", Y_func(1.0)[0])
-print("v(1s) =", Y_func(1.0)[1])
+    Y0 = np.array([1.0, 0.0])   
+    vx, vy, Y_func = rk4(f_shm, 0, 10, 1000, Y0)
+    print("y(1s) =", Y_func(1.0)[0])
+    print("v(1s) =", Y_func(1.0)[1])
 
 ---
 
