@@ -130,7 +130,7 @@ RK4 方法透過在一個步長內，多次估計斜率來提高準確度。
 ODE 必須寫成 dy/dx = f(x, y) 的形式
 
     def f(x, y):
-    return -2*y + np.sin(x)
+        return -2*y + np.sin(x)
 
 2.呼叫數值解函數
 
