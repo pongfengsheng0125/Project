@@ -1,9 +1,6 @@
 import numpy as np
 
-# ====================================================
 # 建立近似解函數 y = y(x)
-# 支援單變數與系統 ODE
-# ====================================================
 def make_solution_function(vx, vy):
     vx = np.asarray(vx)
     vy = np.asarray(vy)
@@ -11,11 +8,9 @@ def make_solution_function(vx, vy):
     def y_func(xq):
         xq = np.asarray(xq)
 
-        # 單變數
         if vy.ndim == 1:
             return np.interp(xq, vx, vy)
 
-        # 系統 ODE (多維)
         yq = []
         for i in range(vy.shape[0]):
             yq.append(np.interp(xq, vx, vy[i,:]))
@@ -23,9 +18,7 @@ def make_solution_function(vx, vy):
     
     return y_func
 
-# ====================================================
-# Euler Method (支援單變數與系統)
-# ====================================================
+# Euler Method 
 def euler(f, a, b, n, ya):
     h = (b-a)/n
 
@@ -57,9 +50,7 @@ def euler(f, a, b, n, ya):
     y_func = make_solution_function(vx, vy)
     return vx, vy, y_func
 
-# ====================================================
-# Runge-Kutta 4 (支援單變數與系統)
-# ====================================================
+# Runge-Kutta 4 
 def rk4(f, a, b, n, ya):
     h = (b-a)/n
 
