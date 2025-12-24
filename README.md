@@ -207,7 +207,6 @@ ODE：y'' + w^2 * y = 0
 
     ├── euler()          # Euler method
     ├── rk4()            # Runge–Kutta (Order 4)
-    ├── rk4_system()     # RK4 for systems of ODEs
     └── make_solution_function()
 
 ---
