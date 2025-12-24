@@ -19,7 +19,7 @@ def make_solution_function(vx, vy):
     return y_func
 
 # Euler Method 
-def euler(f, a, b, n, ya):
+def euler(f, a=0, b=5, n=100, ya=0):
     h = (b-a)/n
 
     if np.isscalar(ya):
@@ -51,7 +51,7 @@ def euler(f, a, b, n, ya):
     return vx, vy, y_func
 
 # Runge-Kutta 4 
-def rk4(f, a, b, n, ya):
+def rk4(f, a=0, b=5, n=100, ya=0):
     h = (b-a)/n
 
     if np.isscalar(ya):
