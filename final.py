@@ -1,163 +1,120 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
-# ===============================
-# Utility
-# ===============================
-def ensure_array(y):
-    y = np.array(y)
-    if y.ndim == 0:
-        y = y.reshape(1)
-    return y
+# ====================================================
+# 建立近似解函數 y = y(x)
+# 支援單變數與系統 ODE
+# ====================================================
+def make_solution_function(vx, vy):
+    vx = np.asarray(vx)
+    vy = np.asarray(vy)
 
-# ===============================
-# General ODE Solver (Euler + RK4)
-# ===============================
-class ODESolver:
-    """
-    General IVP solver supporting Euler and RK4.
-    f(t, y): derivative function (scalar or vector)
-    """
+    def y_func(xq):
+        xq = np.asarray(xq)
 
-    def __init__(self, f, t0, y0, dtype=None):
-        self.f = f
-        self.t0 = t0
-        self.y0 = np.array(y0, dtype=dtype)
-        if self.y0.ndim == 0:
-            self.y0 = self.y0.reshape(1)
-        self.dim = self.y0.size
+        # 單變數
+        if vy.ndim == 1:
+            return np.interp(xq, vx, vy)
 
-    def _step_euler(self, t, y, dt):
-        return y + dt * np.array(self.f(t, y))
-
-    def _step_rk4(self, t, y, dt):
-        f = self.f
-        k1 = np.array(f(t, y))
-        k2 = np.array(f(t + dt/2, y + dt*k1/2))
-        k3 = np.array(f(t + dt/2, y + dt*k2/2))
-        k4 = np.array(f(t + dt,   y + dt*k3))
-        return y + (dt/6)*(k1 + 2*k2 + 2*k3 + k4)
-
-    def solve(self, t_end=None, dt=None, t_eval=None, method="rk4"):
-        if t_eval is not None:
-            t_eval = np.asarray(t_eval)
-        else:
-            t_eval = np.arange(self.t0, t_end+dt, dt)
-
-        y = self.y0.copy()
-        ts = [t_eval[0]]
-        ys = [y.copy()]
-
-        for i in range(1, len(t_eval)):
-            t_prev = t_eval[i-1]
-            t_now = t_eval[i]
-            dt_now = t_now - t_prev
-
-            if method.lower() == "euler":
-                y = self._step_euler(t_prev, y, dt_now)
-            else:
-                y = self._step_rk4(t_prev, y, dt_now)
-
-            ts.append(t_now)
-            ys.append(y.copy())
-
-        return np.array(ts), np.vstack(ys)
-
-# ===============================
-# Convert n-th order ODE to 1st-order system
-# ===============================
-def nth_order_to_system(g, n):
-    """
-    y^(n) = g(t, y, y', ..., y^(n-1))
-    converts to first-order system.
-    """
-    def F(t, Y):
-        Y = np.asarray(Y)
-        out = np.zeros_like(Y)
-        out[:-1] = Y[1:]      # y' = y1, y1' = y2, ...
-        out[-1] = g(t, *Y)    # last item = y^(n)
-        return out
-    return F
-
-# ===============================
-# Example: 2D Projectile motion
-# ===============================
-g = 9.81
-def projectile_system(t, Y):
-    x, vx, y, vy = Y
-    return np.array([vx, 0, vy, -g])  # dx=vx, dvx=0, dy=vy, dvy=-g
-
-# Initial conditions
-speed = 30.0
-angle = np.radians(45)
-vx0 = speed * np.cos(angle)
-vy0 = speed * np.sin(angle)
-Y0 = [0, vx0, 0, vy0]
-
-t0 = 0
-t_end = 2 * vy0 / g * 1.05
-dt = 0.01
-
-solver_rk4 = ODESolver(projectile_system, t0, Y0)
-solver_eu  = ODESolver(projectile_system, t0, Y0)
-
-t_rk4, y_rk4 = solver_rk4.solve(t_end=t_end, dt=dt, method="rk4")
-t_eu,  y_eu  = solver_eu.solve(t_end=t_end, dt=dt, method="euler")
-
-# Extract trajectories
-x_rk4, y_rk4_pos = y_rk4[:,0], y_rk4[:,2]
-x_eu,  y_eu_pos  = y_eu[:,0],  y_eu[:,2]
-
-# Analytical solution
-x_true = vx0 * t_rk4
-y_true = vy0 * t_rk4 - 0.5 * g * t_rk4**2
-
-# ===============================
-# Plot
-# ===============================
-plt.figure(figsize=(8, 5))
-plt.plot(x_true, y_true, label="Analytical")
-plt.plot(x_rk4, y_rk4_pos, label="RK4")
-plt.plot(x_eu, y_eu_pos, label="Euler")
-plt.xlabel("x (m)")
-plt.ylabel("y (m)")
-plt.title("Projectile Motion: Analytical vs RK4 vs Euler")
-plt.legend()
-plt.grid(True)
-plt.show()
-
-def print_ode_solution(ts, ys, labels=None, precision=3, step=10):
-    """
-    ts: time array
-    ys: solution array (shape: [len(ts), dim])
-    labels: list of variable names
-    precision: number of decimal digits
-    step: print every `step` points
-    """
-    ts = np.asarray(ts)
-    ys = np.asarray(ys)
-
-    dim = ys.shape[1] if ys.ndim > 1 else 1
-    if labels is None:
-        labels = [f"y{i}" for i in range(dim)]
+        # 系統 ODE (多維)
+        yq = []
+        for i in range(vy.shape[0]):
+            yq.append(np.interp(xq, vx, vy[i,:]))
+        return np.array(yq)
     
-    # Print header
-    header = "t".ljust(8) + "".join([lbl.rjust(10) for lbl in labels])
-    print(header)
-    print("-" * len(header))
+    return y_func
+
+# ====================================================
+# Euler Method (支援單變數與系統)
+# ====================================================
+def euler(f, a, b, n, ya):
+    h = (b-a)/n
+
+    if np.isscalar(ya):
+        vy = np.zeros(n+1, dtype=complex if np.iscomplexobj(ya) else float)
+    else:
+        m = len(ya)
+        vy = np.zeros((m, n+1), dtype=complex if np.iscomplexobj(ya) else float)
+
+    vx = np.zeros(n+1)
+    x = a
+    y = np.array(ya, copy=True)
     
-    # Print rows with step
-    for t, y in zip(ts[::step], ys[::step]):
-        if dim == 1:
-            row = f"{t:{8}.{precision}f}{y:{10}.{precision}f}"
+    vx[0] = x
+    if y.ndim > 0:
+        vy[:,0] = y
+    else:
+        vy[0] = y
+
+    for i in range(n):
+        y = y + h * f(x, y)
+        x = a + (i+1)*h
+        vx[i+1] = x
+        if vy.ndim == 1:
+            vy[i+1] = y
         else:
-            row = f"{t:{8}.{precision}f}" + "".join([f"{yi:{10}.{precision}f}" for yi in y])
-        print(row)
+            vy[:,i+1] = y
+
+    y_func = make_solution_function(vx, vy)
+    return vx, vy, y_func
+
+# ====================================================
+# Runge-Kutta 4 (支援單變數與系統)
+# ====================================================
+def rk4(f, a, b, n, ya):
+    h = (b-a)/n
+
+    if np.isscalar(ya):
+        vy = np.zeros(n+1, dtype=complex if np.iscomplexobj(ya) else float)
+    else:
+        m = len(ya)
+        vy = np.zeros((m, n+1), dtype=complex if np.iscomplexobj(ya) else float)
+
+    vx = np.zeros(n+1)
+    x = a
+    y = np.array(ya, copy=True)
+
+    vx[0] = x
+    if y.ndim > 0:
+        vy[:,0] = y
+    else:
+        vy[0] = y
+
+    for i in range(n):
+        if np.isscalar(y):
+            k1 = h * f(x, y)
+            k2 = h * f(x + h/2, y + k1/2)
+            k3 = h * f(x + h/2, y + k2/2)
+            k4 = h * f(x + h, y + k3)
+            y = y + (k1 + 2*k2 + 2*k3 + k4)/6
+        else:
+            k1 = h * f(x, y)
+            k2 = h * f(x + h/2, y + k1/2)
+            k3 = h * f(x + h/2, y + k2/2)
+            k4 = h * f(x + h, y + k3)
+            y = y + (k1 + 2*k2 + 2*k3 + k4)/6
+
+        x = a + (i+1)*h
+        vx[i+1] = x
+        if vy.ndim == 1:
+            vy[i+1] = y
+        else:
+            vy[:,i+1] = y
+
+    y_func = make_solution_function(vx, vy)
+    return vx, vy, y_func
+
+#範例 1：拋物線運動（重力加速度 g = 9.8 m/s²）
+#運動方程式：v' = -g, y' = v
+#初值：y(0)=0, v(0)=20 m/s
+
+g = 9.8
+def f_parabola(t, Y):
+    y, v = Y
+    return np.array([v, -g])
+
+vx, vy, Y_func = rk4(f_parabola, 0, 5, 100, np.array([0.0, 20.0]))
+print("位置 y(2s) =", Y_func(2)[0])
+print("速度 v(2s) =", Y_func(2)[1])
 
 
-print("\nRK4 Solution (partial, every 10 points):")
-print_ode_solution(t_rk4, y_rk4, labels=["x", "vx", "y", "vy"], step=10)
-
-print("\nEuler Solution (partial, every 10 points):")
-print_ode_solution(t_eu, y_eu, labels=["x", "vx", "y", "vy"], step=10)
 
