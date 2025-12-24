@@ -201,6 +201,37 @@ ODE：y'' + w^2 * y = 0
     print("y(1s) =", Y_func(1.0)[0])
     print("v(1s) =", Y_func(1.0)[1])
 
+範例 4：阻尼振動
+
+ODE：y'' + 2γ y' + ω² y = 0
+系統形式：y1=y, y2=y'
+初值：y(0)=1, v(0)=0
+
+    gamma = 0.1
+    omega = 2.0
+
+    def f_damped(t, Y):
+        y, v = Y
+        return np.array([v, -2*gamma*v - omega**2*y])
+
+    Y0 = np.array([1.0, 0.0])
+    vx, vy, Y_func = rk4(f_damped, 0, 10, 1000, Y0)
+
+    print("y(5s) =", Y_func(5.0)[0])
+    print("v(5s) =", Y_func(5.0)[1])
+
+範例 5：複數 ODE
+
+ODE：dz/dt = i * z, z(0) = 1
+解為旋轉的複數軌跡
+
+    def f_complex(t, z):
+        return 1j * z
+
+    vx, vy, z_func = rk4(f_complex, 0, 10, 1000, 1.0 + 0j)
+
+    print("z(5) =", z_func(5))
+
 ---
 
 ## 3. 程式架構

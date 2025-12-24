@@ -107,5 +107,12 @@ vx, vy, Y_func = rk4(f_parabola, 0, 5, 100, np.array([0.0, 20.0]))
 print("位置 y(2s) =", Y_func(2)[0])
 print("速度 v(2s) =", Y_func(2)[1])
 
+omega = 2.0  # rad/s
+def f_shm(t, Y):
+    y, v = Y
+    return np.array([v, -omega**2 * y])
 
-
+Y0 = np.array([1.0, 0.0])   
+vx, vy, Y_func = rk4(f_shm, 0, 10, 1000, Y0)
+print("y(1s) =", Y_func(1.0)[0])
+print("v(1s) =", Y_func(1.0)[1])
